@@ -16,35 +16,51 @@ pair <unsigned int, unsigned int> calcDivision(unsigned int n, unsigned int d){
 
 int get_max_pieces(unsigned int n, vector<unsigned int> piece_lengths){
     auto untried_lengths = piece_lengths;  // Copy the original
-    unsigned int ret_num_ribbons = 0, R = 0;    // Number of ribbons, and remaining ribbon    
-    unsigned int piece_l; //piece length to consider
     pair < unsigned int, unsigned int> res; // result of division
 
-
-    // Continue looking:
-    //  1) As long as there is still ribon left AND
-    //  2) The remaining untried_lengths are longer than the remaining ribbon
-    bool ribon_left = true;
-    bool cutting_options = true; 
-    do{
-        piece_l = untried_lengths.back();  //piece length to consider
-        untried_lengths.pop_back();
-       
-        res = calcDivision(n, piece_l);
-        ret_num_ribbons = res.first;   // Calculate number of ribbons
-        R = res.second; // Calculate remainder
-
-        ribon_left = (R != 0);
-        cutting_options = all_of(piece_lengths.begin(), piece_lengths.end(), [R] (unsigned int i){return i > R;});
-
-    } while (ribon_left && cutting_options);
+    // Get current length to try out
+    unsigned int curr_length = untried_lengths.back();
+    untried_lengths.pop_back();
     
-    if(R == 0){
-        return ret_num_ribbons;
+    // If the smallest length is larger than the remaining ribbon return -1
+    if (curr_length > n){
+        return -1;
     }
-    else{
-        return ret_num_ribbons + get_max_pieces(R, piece_lengths);
+    
+    res = calcDivision(n, curr_length);
+    unsigned int num_curr_pieces = res.first;
+    unsigned int remaining_length = res.second;
+
+    // Return if there is no ribbon remaining
+    if (remaining_length == 0){
+        return num_curr_pieces;
     }
+    
+    // Stop looking if there are no pieces to try out anymore    
+    if (untried_lengths.size() == 0){
+            return -1;
+    }
+   
+    // Reduce num_curr_pieces until solution is found
+    while (true) {
+        //cout << "Cutting " << n << " with " << curr_length << ": " << num_curr_pieces << endl;
+
+        unsigned int num_new_pieces = get_max_pieces(remaining_length, untried_lengths);
+
+        // Did we find a solution?
+        if (num_new_pieces != -1){
+            return num_new_pieces + num_curr_pieces;
+        }
+
+        // If we reached here, all options have been exhausted.
+        if (num_curr_pieces == 0){
+            break;
+        }
+        --num_curr_pieces;
+        remaining_length += curr_length;
+    }
+       
+    return -1; 
 }
 
 int solve_polycarpus(unsigned int n, unsigned int a, unsigned int b, unsigned int c){
