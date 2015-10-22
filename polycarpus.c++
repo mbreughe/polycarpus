@@ -15,6 +15,8 @@ pair <unsigned int, unsigned int> calcDivision(unsigned int n, unsigned int d){
 }
 
 int get_max_pieces(unsigned int n, vector<unsigned int> piece_lengths){
+    int best_solution = -1;
+
     auto untried_lengths = piece_lengths;  // Copy the original
     pair < unsigned int, unsigned int> res; // result of division
 
@@ -32,6 +34,8 @@ int get_max_pieces(unsigned int n, vector<unsigned int> piece_lengths){
     unsigned int remaining_length = res.second;
 
     // Return if there is no ribbon remaining
+    // This is the best solution, since the ribbon could
+    // be divided into pieces with smallest length
     if (remaining_length == 0){
         return num_curr_pieces;
     }
@@ -43,13 +47,14 @@ int get_max_pieces(unsigned int n, vector<unsigned int> piece_lengths){
    
     // Reduce num_curr_pieces until solution is found
     while (true) {
-        //cout << "Cutting " << n << " with " << curr_length << ": " << num_curr_pieces << endl;
-
         unsigned int num_new_pieces = get_max_pieces(remaining_length, untried_lengths);
 
         // Did we find a solution?
         if (num_new_pieces != -1){
-            return num_new_pieces + num_curr_pieces;
+            int new_solution = num_new_pieces + num_curr_pieces;
+            if (new_solution > best_solution){
+                best_solution = new_solution;
+            }
         }
 
         // If we reached here, all options have been exhausted.
@@ -60,7 +65,7 @@ int get_max_pieces(unsigned int n, vector<unsigned int> piece_lengths){
         remaining_length += curr_length;
     }
        
-    return -1; 
+    return best_solution; 
 }
 
 int solve_polycarpus(unsigned int n, unsigned int a, unsigned int b, unsigned int c){
